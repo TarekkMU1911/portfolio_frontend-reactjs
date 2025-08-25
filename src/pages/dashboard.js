@@ -1,41 +1,19 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useAuth } from "../context/authContext";
-import axios from "axios";
+import { usePortfolio } from "../context/dashboardContext";
 
 function Dashboard() {
   const { user, logout } = useAuth();
-const [portfolio, setPortfolio] = useState({
-  username: "",
-  email: "",
-  firstName: "",
-  lastName: "",
-  jobTitle: "",
-  description: "",
-  phoneNumber: "",
-  main: "",   
-  cover: "",  
-  cv: "",     
-  links: []   
-});
+  const { portfolio, setPortfolio, updatePortfolio } = usePortfolio();
   const [linkInput, setLinkInput] = useState({ platform: "", url: "" });
 
-useEffect(() => {
-  if (user?.username) {
-    setPortfolio(prev => ({ ...prev, username: user.username }));
-    const fetchPortfolio = async () => {
-      try {
-        const res = await axios.get(`http://localhost:3000/portfolio/share/${user.username}`);
-        if (res.data) setPortfolio(res.data);
-      } catch (err) {
-        console.error("Error fetching portfolio:", err);
-      }
-    };
-    fetchPortfolio();
-  }
-}, [user?.username]);
-// Remove the duplicate fetchPortfolio and closing brace
-const handleChange = e => setPortfolio({ ...portfolio, [e.target.name]: e.target.value });
-const handleLinkChange = e => setLinkInput({ ...linkInput, [e.target.name]: e.target.value });
+  if (!user || !portfolio) return <div>Loading user...</div>;
+
+  const handleChange = e =>
+    setPortfolio({ ...portfolio, [e.target.name]: e.target.value });
+
+  const handleLinkChange = e =>
+    setLinkInput({ ...linkInput, [e.target.name]: e.target.value });
 
   const addLink = () => {
     if (linkInput.platform && linkInput.url) {
@@ -44,27 +22,22 @@ const handleLinkChange = e => setLinkInput({ ...linkInput, [e.target.name]: e.ta
     }
   };
 
-  const removeLink = (index) => {
+  const removeLink = index => {
     const newLinks = [...portfolio.links];
     newLinks.splice(index, 1);
     setPortfolio({ ...portfolio, links: newLinks });
   };
 
-const handleSubmit = async e => {
-  e.preventDefault();
-  if (!user?.username) {
-    alert("User not loaded. Please try again.");
-    return;
-  }
-  try {
-    const dataToSend = { ...portfolio, username: user.username };
-    await axios.put(`http://localhost:3000/portfolio/share/${user.username}`, dataToSend);
-    alert("Portfolio saved");
-  } catch (err) {
-    console.error(err);
-    alert(err.response?.data?.message || "Error saving portfolio");
-  }
-};
+  const handleSubmit = async e => {
+    e.preventDefault();
+    try {
+      await updatePortfolio(portfolio);
+      alert("Portfolio saved");
+    } catch (err) {
+      console.error(err);
+      alert("Error saving portfolio");
+    }
+  };
 
   return (
     <div style={styles.container}>
@@ -105,6 +78,7 @@ const handleSubmit = async e => {
           <input name="url" placeholder="URL" value={linkInput.url} onChange={handleLinkChange} style={styles.input} />
           <button type="button" onClick={addLink} style={styles.button}>Add Link</button>
         </div>
+
         <div style={styles.linksList}>
           {portfolio.links.map((link, i) => (
             <div key={i} style={styles.linkItem}>

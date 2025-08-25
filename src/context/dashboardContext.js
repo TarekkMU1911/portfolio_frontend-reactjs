@@ -34,7 +34,7 @@ export function PortfolioProvider({ children, username }) {
   const updatePortfolio = async (newPortfolio) => {
     setPortfolio(prev => ({ ...prev, ...newPortfolio }));
     try {
-      await axios.put(`http://localhost:3000/portfolio/share/${username}`, { ...portfolio, ...newPortfolio });
+      await axios.put(`http://localhost:3000/portfolio/share/${username}`, newPortfolio);
       console.log("Portfolio updated in DB");
     } catch (err) {
       console.error("Error updating portfolio:", err);
