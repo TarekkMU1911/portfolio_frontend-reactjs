@@ -84,20 +84,20 @@ const styles = {
   },
   input: {
     marginBottom: "15px",
-    padding: "12px", // updated to match Register page
+    padding: "12px", 
     borderRadius: "5px",
     border: "none",
     fontSize: "16px",
   },
   button: {
-    padding: "12px", // updated to match Register page
+    padding: "12px", 
     borderRadius: "5px",
     border: "none",
     backgroundColor: "#4caf50",
     color: "#fff",
     cursor: "pointer",
     fontWeight: "bold",
-    fontSize: "16px", // added to match Register page
+    fontSize: "16px", 
   },
   text: {
     marginTop: "15px",

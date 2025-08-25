@@ -3,24 +3,30 @@ import { useAuth } from "../context/authContext";
 import { useNavigate, Link } from "react-router-dom";
 
 function Register() {
-  const [form, setForm] = useState({ username: "", password: "" });
+  const [form, setForm] = useState({ username: "", password: "", confirmPassword: "" });
   const { register } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  try {
-    const body = { user: { username: form.username, password: form.password } };
-    await register(body);
-    navigate("/dashboard");
-  } catch (err) {
-    alert(err.message); 
-  }
-};
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
+    
+    if (form.password !== form.confirmPassword) {
+      alert("Passwords do not match!");
+      return;
+    }
+
+    try {
+      const body = { user: { username: form.username, password: form.password } };
+      await register(body);
+      navigate("/login"); 
+    } catch (err) {
+      alert(err.message); 
+    }
+  };
 
   return (
     <div style={styles.container}>
@@ -40,6 +46,15 @@ const handleSubmit = async (e) => {
             type="password"
             placeholder="Password"
             value={form.password}
+            onChange={handleChange}
+            style={styles.input}
+            required
+          />
+          <input
+            name="confirmPassword"
+            type="password"
+            placeholder="Confirm Password"
+            value={form.confirmPassword}
             onChange={handleChange}
             style={styles.input}
             required

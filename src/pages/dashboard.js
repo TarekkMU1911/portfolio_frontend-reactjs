@@ -1,11 +1,13 @@
 import React, { useState } from "react";
 import { useAuth } from "../context/authContext";
 import { usePortfolio } from "../context/dashboardContext";
+import { useNavigate } from "react-router-dom"; 
 
 function Dashboard() {
   const { user, logout } = useAuth();
   const { portfolio, setPortfolio, updatePortfolio } = usePortfolio();
   const [linkInput, setLinkInput] = useState({ platform: "", url: "" });
+  const navigate = useNavigate(); 
 
   if (!user || !portfolio) return <div>Loading user...</div>;
 
@@ -31,13 +33,21 @@ function Dashboard() {
   const handleSubmit = async e => {
     e.preventDefault();
     try {
-      await updatePortfolio(portfolio);
+      const savedPortfolio = await updatePortfolio({
+        ...portfolio,
+        mainPicture: portfolio.main,
+        coverPicture: portfolio.cover,
+      }); 
       alert("Portfolio saved");
+      navigate(`/portfolio/${user.id}/${savedPortfolio.id}`);
     } catch (err) {
       console.error(err);
       alert("Error saving portfolio");
     }
   };
+
+
+
 
   return (
     <div style={styles.container}>
