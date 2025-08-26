@@ -1,8 +1,8 @@
-// portfolioCreation.jsx
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../context/authContext";
 import { usePortfolio } from "../context/createPContext";
 import { useNavigate } from "react-router-dom";
+import API from "../services/api";
 
 function PortfolioCreation() {
   const { user } = useAuth();
@@ -11,11 +11,12 @@ function PortfolioCreation() {
   const [files, setFiles] = useState({ profileImage: null, coverImage: null, cv: null });
   const navigate = useNavigate();
 
-  // initialize blank portfolio when component mounts
   useEffect(() => {
-    if (!portfolio && user) initializePortfolio(user.id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [portfolio, user]);
+    const uid = user?.id ?? user?._id ?? user?.userId;
+    if (!portfolio && uid) {
+      initializePortfolio(uid);
+    }
+  }, [portfolio, user, initializePortfolio]);
 
   if (!user || !portfolio) return <div>Loading...</div>;
 
@@ -37,7 +38,6 @@ function PortfolioCreation() {
     setPortfolio((prev) => ({ ...prev, links: prev.links.filter((_, i) => i !== index) }));
   };
 
-  // files: names must match backend interceptor: profileImage, coverImage, cv
   const handleFileChange = (e) => {
     const { name, files: selectedFiles } = e.target;
     setFiles((prev) => ({ ...prev, [name]: selectedFiles[0] || null }));
@@ -46,37 +46,52 @@ function PortfolioCreation() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Build formData that matches backend DTO + file field names
-    const formData = new FormData();
-
-    // Name: either explicit `name` or combine first + last
     const finalName = portfolio.name?.trim()
       ? portfolio.name.trim()
       : `${(portfolio.firstName || "").trim()} ${(portfolio.lastName || "").trim()}`.trim();
 
-    formData.append("name", finalName || "");
-    formData.append("jobTitle", portfolio.jobTitle || "");
-    formData.append("description", portfolio.description || "");
-    formData.append("email", portfolio.email || "");
-    formData.append("phone", portfolio.phone || "");
+    const urls = (portfolio.links || [])
+      .map((l) => (typeof l === "string" ? l : l?.url))
+      .filter(Boolean);
 
-    // links: backend expects JSON string of URLs; DTO uses @IsUrl each: true
-    // Convert portfolio.links (array of {platform,url}) to array of url strings
-    const urls = (portfolio.links || []).map((l) => l.url).filter(Boolean);
-    formData.append("links", JSON.stringify(urls));
-
-    // Files: names per backend interceptor
-    if (files.profileImage) formData.append("profileImage", files.profileImage);
-    if (files.coverImage) formData.append("coverImage", files.coverImage);
-    if (files.cv) formData.append("cv", files.cv);
+    const uid = user?.id ?? user?._id ?? user?.userId;
 
     try {
-      const saved = await createPortfolio(user.id, formData);
-      // success -> navigate to portfolio view
-      navigate(`/portfolio/${saved.id}`);
+      try {
+        const byUser = await API.get(`/portfolio/user/${uid}`);
+        if (byUser.data?.id || byUser.data?._id) {
+          const pid = byUser.data.id || byUser.data._id;
+          navigate(`/portfolio/${pid}`);
+          return;
+        }
+      } catch {}
+
+      try {
+        const search = await API.get(`/portfolio?userId=${uid}&limit=1`);
+        const existing = search.data?.items?.[0];
+        if (existing?.id || existing?._id) {
+          const pid = existing.id || existing._id;
+          navigate(`/portfolio/${pid}`);
+          return;
+        }
+      } catch {}
+
+      const saved = await createPortfolio({
+        userId: uid,
+        name: finalName || "",
+        jobTitle: portfolio.jobTitle || "",
+        description: portfolio.description || "",
+        email: portfolio.email || "",
+        phone: portfolio.phone || "",
+        links: urls,
+        profileImage: files.profileImage,
+        coverImage: files.coverImage,
+        cv: files.cv,
+      });
+
+      const savedId = saved?.id || saved?._id;
+      navigate(`/portfolio/${savedId}`);
     } catch (err) {
-      // show detailed message in console and user-friendly alert
-      console.error("Create failed:", err.response?.data || err.message);
       const serverMsg = err.response?.data?.message || JSON.stringify(err.response?.data) || err.message;
       alert(`Error creating portfolio: ${serverMsg}`);
     }
@@ -87,51 +102,39 @@ function PortfolioCreation() {
       <h1 style={styles.title}>Create Portfolio</h1>
       <form onSubmit={handleSubmit} style={styles.form}>
         <label>First Name</label>
-        <input name="firstName" value={portfolio.firstName} onChange={handleChange} style={styles.input} />
-
+        <input name="firstName" value={portfolio.firstName || ""} onChange={handleChange} style={styles.input} />
         <label>Last Name</label>
-        <input name="lastName" value={portfolio.lastName} onChange={handleChange} style={styles.input} />
-
+        <input name="lastName" value={portfolio.lastName || ""} onChange={handleChange} style={styles.input} />
         <label>Full name (optional)</label>
-        <input name="name" value={portfolio.name} onChange={handleChange} placeholder="Optional: overrides first+last" style={styles.input} />
-
+        <input name="name" value={portfolio.name || ""} onChange={handleChange} style={styles.input} />
         <label>Email</label>
-        <input name="email" value={portfolio.email} onChange={handleChange} style={styles.input} />
-
+        <input name="email" value={portfolio.email || ""} onChange={handleChange} style={styles.input} />
         <label>Job Title</label>
-        <input name="jobTitle" value={portfolio.jobTitle} onChange={handleChange} style={styles.input} />
-
+        <input name="jobTitle" value={portfolio.jobTitle || ""} onChange={handleChange} style={styles.input} />
         <label>Description</label>
-        <textarea name="description" value={portfolio.description} onChange={handleChange} style={styles.textarea} />
-
+        <textarea name="description" value={portfolio.description || ""} onChange={handleChange} style={styles.textarea} />
         <label>Phone</label>
-        <input name="phone" value={portfolio.phone} onChange={handleChange} style={styles.input} />
-
+        <input name="phone" value={portfolio.phone || ""} onChange={handleChange} style={styles.input} />
         <label>Main Picture</label>
         <input type="file" name="profileImage" accept="image/*" onChange={handleFileChange} style={styles.input} />
-
         <label>Cover Picture</label>
         <input type="file" name="coverImage" accept="image/*" onChange={handleFileChange} style={styles.input} />
-
         <label>CV (pdf/doc)</label>
         <input type="file" name="cv" accept=".pdf,.doc,.docx" onChange={handleFileChange} style={styles.input} />
-
         <h3>Links</h3>
         <div style={styles.linksContainer}>
           <input name="platform" placeholder="Platform" value={linkInput.platform} onChange={handleLinkChange} style={styles.input} />
           <input name="url" placeholder="https://..." value={linkInput.url} onChange={handleLinkChange} style={styles.input} />
           <button type="button" onClick={addLink} style={styles.smallButton}>Add</button>
         </div>
-
         <div style={styles.linksList}>
-          {portfolio.links.map((link, i) => (
+          {(portfolio.links || []).map((link, i) => (
             <div key={i} style={styles.linkItem}>
               <span>{link.platform}: {link.url}</span>
               <button type="button" onClick={() => removeLink(i)} style={styles.removeBtn}>X</button>
             </div>
           ))}
         </div>
-
         <div style={{ display: "flex", gap: "10px", marginTop: 12 }}>
           <button type="submit" style={styles.button}>Create Portfolio</button>
           <button type="button" onClick={() => navigate("/home")} style={styles.backBtn}>Back</button>

@@ -14,11 +14,8 @@ function ProtectedRoute({ children }) {
 }
 
 function DashboardWrapper() {
-  const { user } = useAuth();
-  if (!user) return <div>Loading user...</div>;
-
   return (
-    <PortfolioProvider userId={user.id}>
+    <PortfolioProvider>
       <Dashboard />
     </PortfolioProvider>
   );
@@ -27,10 +24,10 @@ function DashboardWrapper() {
 function AppRoutes() {
   return (
     <Routes>
+      <Route path="/" element={<Navigate to="/login" />} />
       <Route path="/register" element={<Register />} />
       <Route path="/login" element={<Login />} />
-      
-      {/* Home page */}
+
       <Route
         path="/home"
         element={
@@ -40,7 +37,6 @@ function AppRoutes() {
         }
       />
 
-      {/* Portfolio Creation */}
       <Route
         path="/portfolioCreation"
         element={
@@ -50,7 +46,6 @@ function AppRoutes() {
         }
       />
 
-      {/* Portfolio View */}
       <Route
         path="/portfolio/:id"
         element={
@@ -60,18 +55,15 @@ function AppRoutes() {
         }
       />
 
-      {/* Redirect unknown routes */}
       <Route path="*" element={<Navigate to="/login" />} />
     </Routes>
   );
 }
 
-function App() {
+export default function App() {
   return (
     <AuthProvider>
       <AppRoutes />
     </AuthProvider>
   );
 }
-
-export default App;

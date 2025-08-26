@@ -1,16 +1,14 @@
-// createPContext.js
 import { createContext, useContext, useState } from "react";
-import axios from "axios";
+import API from "../services/api";
 
 const PortfolioContext = createContext();
 
 export function PortfolioProvider({ children }) {
   const [portfolio, setPortfolio] = useState(null);
 
-  // Initialize new portfolio with user id
-  const initializePortfolio = (id) => {
+  const initializePortfolio = (userId) => {
     setPortfolio({
-      userId: id,
+      userId,
       firstName: "",
       lastName: "",
       name: "",
@@ -18,93 +16,89 @@ export function PortfolioProvider({ children }) {
       jobTitle: "",
       description: "",
       phone: "",
-      links: [], // array of { platform, url }
-      mainPicprofileture: null,
-      coverPicture: null,
+      links: [],
+      profileImage: null,
+      coverImage: null,
       cv: null,
     });
   };
 
+  const createPortfolio = async (portfolioData) => {
+    try {
+      const uid = portfolioData?.userId ?? portfolio?.userId ?? portfolioData?.uid;
+      if (!uid) throw new Error("Missing userId");
 
+      try {
+        const res1 = await API.get(`/portfolio/user/${uid}`);
+        if (res1.data?.id || res1.data?._id) {
+          setPortfolio(res1.data);
+          return res1.data;
+        }
+      } catch {}
 
-const createPortfolio = async (portfolioData) => {
-  try {
-    const formData = new FormData();
-    formData.append("name", portfolioData.name);
-    formData.append("jobTitle", portfolioData.jobTitle);
-    formData.append("description", portfolioData.description);
-    formData.append("email", portfolioData.email);
-    formData.append("phoneNumber", portfolioData.phoneNumber);
+      try {
+        const res2 = await API.get(`/portfolio?userId=${uid}&limit=1`);
+        const existing = res2.data?.items?.[0];
+        if (existing?.id || existing?._id) {
+          setPortfolio(existing);
+          return existing;
+        }
+      } catch {}
 
-    // links must be array of strings
-    if (Array.isArray(portfolioData.links)) {
-      portfolioData.links.forEach(link => formData.append("links", link));
+      const formData = new FormData();
+      formData.append("name", portfolioData.name ?? "");
+      formData.append("jobTitle", portfolioData.jobTitle ?? "");
+      formData.append("description", portfolioData.description ?? "");
+      formData.append("email", portfolioData.email ?? "");
+      formData.append("phone", portfolioData.phone ?? "");
+      const links = Array.isArray(portfolioData.links) ? portfolioData.links : [];
+      const urls = links.map(l => (typeof l === "string" ? l : l?.url)).filter(Boolean);
+      formData.append("links", JSON.stringify(urls));
+      if (portfolioData.profileImage) formData.append("profileImage", portfolioData.profileImage);
+      if (portfolioData.coverImage) formData.append("coverImage", portfolioData.coverImage);
+      if (portfolioData.cv) formData.append("cv", portfolioData.cv);
+
+      const res = await API.post(`/portfolio/${uid}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      setPortfolio(res.data);
+      return res.data;
+    } catch (error) {
+      throw error;
     }
-
-    if (portfolioData.mainPicture) {
-      formData.append("mainPicture", portfolioData.mainPicture);
-    }
-    if (portfolioData.coverPicture) {
-      formData.append("coverPicture", portfolioData.coverPicture);
-    }
-    if (portfolioData.cv) {
-      formData.append("cv", portfolioData.cv);
-    }
-
-    // ✅ userId goes in the URL, not in the form body
-    const response = await axios.post(
-      `http://localhost:3000/portfolio/${portfolioData.userId}`,
-      formData,
-      { headers: { "Content-Type": "multipart/form-data" } }
-    );
-
-    console.log("Portfolio created:", response.data);
-    return response.data;
-  } catch (error) {
-    console.error("Error creating portfolio:", error.response?.data || error.message);
-  }
-};
-
-
-
-
-
+  };
 
   const updatePortfolio = async (portfolioData) => {
     try {
-      if (!portfolio?.id) {
-        // no existing portfolio → create new
-        return await createPortfolio(portfolioData);
+      if (!portfolio?.id && !portfolio?._id) {
+        return await createPortfolio({
+          ...portfolioData,
+          userId: portfolioData?.userId ?? portfolio?.userId,
+        });
       }
 
       const formData = new FormData();
-      formData.append("name", portfolioData.name || "");
-      formData.append("jobTitle", portfolioData.jobTitle || "");
-      formData.append("description", portfolioData.description || "");
-      formData.append("email", portfolioData.email || "");
-      formData.append("phoneNumber", portfolioData.phone || "");
-      formData.append("links", JSON.stringify(portfolioData.links || []));
+      formData.append("name", portfolioData.name ?? "");
+      formData.append("jobTitle", portfolioData.jobTitle ?? "");
+      formData.append("description", portfolioData.description ?? "");
+      formData.append("email", portfolioData.email ?? "");
+      formData.append("phone", portfolioData.phone ?? "");
+      const links = Array.isArray(portfolioData.links) ? portfolioData.links : [];
+      const urls = links.map(l => (typeof l === "string" ? l : l?.url)).filter(Boolean);
+      formData.append("links", JSON.stringify(urls));
+      if (portfolioData.profileImage) formData.append("profileImage", portfolioData.profileImage);
+      if (portfolioData.coverImage) formData.append("coverImage", portfolioData.coverImage);
+      if (portfolioData.cv) formData.append("cv", portfolioData.cv);
 
-      if (portfolioData.mainPicture) {
-        formData.append("mainPicture", portfolioData.mainPicture);
-      }
-      if (portfolioData.coverPicture) {
-        formData.append("coverPicture", portfolioData.coverPicture);
-      }
-      if (portfolioData.cv) {
-        formData.append("cv", portfolioData.cv);
-      }
-
-      const res = await axios.put(
-        `http://localhost:3000/portfolio/${portfolio.id}`,
-        formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
-      );
+      const id = portfolio?.id || portfolio?._id;
+      const res = await API.put(`/portfolio/${id}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
       setPortfolio(res.data);
       return res.data;
     } catch (err) {
-      console.error("Error updating portfolio:", err.response?.data || err.message);
       throw err;
     }
   };
