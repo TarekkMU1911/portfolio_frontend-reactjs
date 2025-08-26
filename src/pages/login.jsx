@@ -2,9 +2,9 @@ import React, { useState } from "react";
 import { useAuth } from "../context/authContext";
 import { useNavigate, Link } from "react-router-dom";
 
-function Register() {
-  const [form, setForm] = useState({ username: "", password: "", confirmPassword: "" });
-  const { register } = useAuth();
+function Login() {
+  const [form, setForm] = useState({ username: "", password: "" });
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e) =>
@@ -12,26 +12,18 @@ function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    
-    if (form.password !== form.confirmPassword) {
-      alert("Passwords do not match!");
-      return;
-    }
-
     try {
-      const body = { user: { username: form.username, password: form.password } };
-      await register(body);
-      navigate("/login"); 
+      await login(form);
+      navigate("/home");
     } catch (err) {
-      alert(err.message); 
+      alert(err.message || "Invalid credentials");
     }
   };
 
   return (
     <div style={styles.container}>
       <div style={styles.card}>
-        <h1 style={styles.title}>Register</h1>
+        <h1 style={styles.title}>Login</h1>
         <form onSubmit={handleSubmit} style={styles.form}>
           <input
             name="username"
@@ -50,23 +42,14 @@ function Register() {
             style={styles.input}
             required
           />
-          <input
-            name="confirmPassword"
-            type="password"
-            placeholder="Confirm Password"
-            value={form.confirmPassword}
-            onChange={handleChange}
-            style={styles.input}
-            required
-          />
           <button type="submit" style={styles.button}>
-            Register
+            Log In
           </button>
         </form>
         <p style={styles.text}>
-          Already have an account?{" "}
-          <Link to="/login" style={styles.link}>
-            Login
+          Don't have an account?{" "}
+          <Link to="/register" style={styles.link}>
+            Register
           </Link>
         </p>
       </div>
@@ -126,4 +109,4 @@ const styles = {
   },
 };
 
-export default Register;
+export default Login;

@@ -2,29 +2,38 @@ import React, { useState } from "react";
 import { useAuth } from "../context/authContext";
 import { useNavigate, Link } from "react-router-dom";
 
-function Login() {
-  const [form, setForm] = useState({ username: "", password: "" });
-  const { login } = useAuth();
+function Register() {
+  const [form, setForm] = useState({
+    username: "",
+    password: "",
+    confirmPassword: ""
+  });
+  const { register } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const body = { user: { username: form.username, password: form.password } };
-      await login(body);
-      navigate("/dashboard");
-    } catch (err) {
-      alert("Invalid credentials");
-    }
-  };
+const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  if (form.password !== form.confirmPassword) {
+    alert("Passwords do not match!");
+    return;
+  }
+
+  try {
+    await register({ username: form.username, password: form.password });
+    navigate("/login");
+  } catch (err) {
+    alert(err.message);
+  }
+};
 
   return (
     <div style={styles.container}>
       <div style={styles.card}>
-        <h1 style={styles.title}>Login</h1>
+        <h1 style={styles.title}>Register</h1>
         <form onSubmit={handleSubmit} style={styles.form}>
           <input
             name="username"
@@ -43,14 +52,23 @@ function Login() {
             style={styles.input}
             required
           />
+          <input
+            name="confirmPassword"
+            type="password"
+            placeholder="Confirm Password"
+            value={form.confirmPassword}
+            onChange={handleChange}
+            style={styles.input}
+            required
+          />
           <button type="submit" style={styles.button}>
-            Log In
+            Register
           </button>
         </form>
         <p style={styles.text}>
-          Don't have an account?{" "}
-          <Link to="/register" style={styles.link}>
-            Register
+          Already have an account?{" "}
+          <Link to="/login" style={styles.link}>
+            Login
           </Link>
         </p>
       </div>
@@ -84,20 +102,20 @@ const styles = {
   },
   input: {
     marginBottom: "15px",
-    padding: "12px", 
+    padding: "12px",
     borderRadius: "5px",
     border: "none",
     fontSize: "16px",
   },
   button: {
-    padding: "12px", 
+    padding: "12px",
     borderRadius: "5px",
     border: "none",
     backgroundColor: "#4caf50",
     color: "#fff",
     cursor: "pointer",
     fontWeight: "bold",
-    fontSize: "16px", 
+    fontSize: "16px",
   },
   text: {
     marginTop: "15px",
@@ -110,4 +128,4 @@ const styles = {
   },
 };
 
-export default Login;
+export default Register;

@@ -11,26 +11,32 @@ export function AuthProvider({ children }) {
     if (saved) setUser(JSON.parse(saved));
   }, []);
 
-  const register = async (data) => {
+  const register = async ({ username, password }) => {
     try {
-      const res = await axios.post("http://localhost:3000/auth/register", data);
-      setUser(res.data);
-      localStorage.setItem("user", JSON.stringify(res.data));
+      const res = await axios.post(
+        "http://localhost:3000/auth/register",
+        { username, password },
+        { headers: { "Content-Type": "application/json" } }
+      );
       return res.data;
     } catch (err) {
-      console.error(err.response?.data || err.message);
+      console.error("Register error:", err.response?.data || err.message);
       throw new Error(err.response?.data?.message || "Registration failed");
     }
   };
 
-  const login = async (data) => {
+  const login = async ({ username, password }) => {
     try {
-      const res = await axios.post("http://localhost:3000/auth/login", data);
+      const res = await axios.post(
+        "http://localhost:3000/auth/login",
+        { username, password },
+        { headers: { "Content-Type": "application/json" } }
+      );
       setUser(res.data);
       localStorage.setItem("user", JSON.stringify(res.data));
       return res.data;
     } catch (err) {
-      console.error(err.response?.data || err.message);
+      console.error("Login error:", err.response?.data || err.message);
       throw new Error(err.response?.data?.message || "Login failed");
     }
   };
