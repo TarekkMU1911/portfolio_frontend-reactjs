@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+// portfolioCreation.jsx
+import React, { useEffect, useState } from "react";
 import { useAuth } from "../context/authContext";
 import { usePortfolio } from "../context/createPContext";
 import { useNavigate } from "react-router-dom";
@@ -7,71 +8,79 @@ function PortfolioCreation() {
   const { user } = useAuth();
   const { portfolio, setPortfolio, createPortfolio, initializePortfolio } = usePortfolio();
   const [linkInput, setLinkInput] = useState({ platform: "", url: "" });
-  const [files, setFiles] = useState({ mainPicture: null, coverPicture: null, cv: null });
+  const [files, setFiles] = useState({ profileImage: null, coverImage: null, cv: null });
   const navigate = useNavigate();
 
-  // Initialize empty portfolio when component mounts
+  // initialize blank portfolio when component mounts
   useEffect(() => {
     if (!portfolio && user) initializePortfolio(user.id);
-  }, [portfolio, initializePortfolio, user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [portfolio, user]);
 
   if (!user || !portfolio) return <div>Loading...</div>;
 
-  const handleChange = (e) =>
-    setPortfolio({ ...portfolio, [e.target.name]: e.target.value });
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setPortfolio((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleLinkChange = (e) =>
-    setLinkInput({ ...linkInput, [e.target.name]: e.target.value });
+    setLinkInput((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
   const addLink = () => {
-    if (linkInput.platform && linkInput.url) {
-      setPortfolio({ ...portfolio, links: [...portfolio.links, linkInput] });
-      setLinkInput({ platform: "", url: "" });
-    }
+    if (!linkInput.platform || !linkInput.url) return;
+    setPortfolio((prev) => ({ ...prev, links: [...(prev.links || []), linkInput] }));
+    setLinkInput({ platform: "", url: "" });
   };
 
   const removeLink = (index) => {
-    const newLinks = portfolio.links.filter((_, i) => i !== index);
-    setPortfolio({ ...portfolio, links: newLinks });
+    setPortfolio((prev) => ({ ...prev, links: prev.links.filter((_, i) => i !== index) }));
   };
 
+  // files: names must match backend interceptor: profileImage, coverImage, cv
   const handleFileChange = (e) => {
     const { name, files: selectedFiles } = e.target;
-    setFiles({ ...files, [name]: selectedFiles[0] });
+    setFiles((prev) => ({ ...prev, [name]: selectedFiles[0] || null }));
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  const formData = new FormData();
-  formData.append("name", portfolio.name);
-  formData.append("jobTitle", portfolio.jobTitle);
-  formData.append("description", portfolio.description);
-  formData.append("email", portfolio.email);
-  formData.append("phone", portfolio.phone);
+    // Build formData that matches backend DTO + file field names
+    const formData = new FormData();
 
-  // links must be a JSON string (not array directly)
-  formData.append("links", JSON.stringify(portfolio.links));
+    // Name: either explicit `name` or combine first + last
+    const finalName = portfolio.name?.trim()
+      ? portfolio.name.trim()
+      : `${(portfolio.firstName || "").trim()} ${(portfolio.lastName || "").trim()}`.trim();
 
-  if (portfolio.profileImage) {
-    formData.append("profileImage", portfolio.profileImage);
-  }
-  if (portfolio.coverImage) {
-    formData.append("coverImage", portfolio.coverImage);
-  }
-  if (portfolio.cv) {
-    formData.append("cv", portfolio.cv);
-  }
+    formData.append("name", finalName || "");
+    formData.append("jobTitle", portfolio.jobTitle || "");
+    formData.append("description", portfolio.description || "");
+    formData.append("email", portfolio.email || "");
+    formData.append("phone", portfolio.phone || "");
 
-  try {
-    await createPortfolio(user.id, formData); // ✅ matches Postman
-    alert("Portfolio created successfully!");
-  } catch (error) {
-    console.error("Error creating portfolio:", error.response?.data || error.message);
-    alert("Error creating portfolio");
-  }
-};
+    // links: backend expects JSON string of URLs; DTO uses @IsUrl each: true
+    // Convert portfolio.links (array of {platform,url}) to array of url strings
+    const urls = (portfolio.links || []).map((l) => l.url).filter(Boolean);
+    formData.append("links", JSON.stringify(urls));
 
+    // Files: names per backend interceptor
+    if (files.profileImage) formData.append("profileImage", files.profileImage);
+    if (files.coverImage) formData.append("coverImage", files.coverImage);
+    if (files.cv) formData.append("cv", files.cv);
+
+    try {
+      const saved = await createPortfolio(user.id, formData);
+      // success -> navigate to portfolio view
+      navigate(`/portfolio/${saved.id}`);
+    } catch (err) {
+      // show detailed message in console and user-friendly alert
+      console.error("Create failed:", err.response?.data || err.message);
+      const serverMsg = err.response?.data?.message || JSON.stringify(err.response?.data) || err.message;
+      alert(`Error creating portfolio: ${serverMsg}`);
+    }
+  };
 
   return (
     <div style={styles.container}>
@@ -83,6 +92,9 @@ const handleSubmit = async (e) => {
         <label>Last Name</label>
         <input name="lastName" value={portfolio.lastName} onChange={handleChange} style={styles.input} />
 
+        <label>Full name (optional)</label>
+        <input name="name" value={portfolio.name} onChange={handleChange} placeholder="Optional: overrides first+last" style={styles.input} />
+
         <label>Email</label>
         <input name="email" value={portfolio.email} onChange={handleChange} style={styles.input} />
 
@@ -92,23 +104,23 @@ const handleSubmit = async (e) => {
         <label>Description</label>
         <textarea name="description" value={portfolio.description} onChange={handleChange} style={styles.textarea} />
 
-        <label>Phone Number</label>
-        <input name="phoneNumber" value={portfolio.phoneNumber} onChange={handleChange} style={styles.input} />
+        <label>Phone</label>
+        <input name="phone" value={portfolio.phone} onChange={handleChange} style={styles.input} />
 
         <label>Main Picture</label>
-        <input type="file" name="mainPicture" accept="image/*" onChange={handleFileChange} style={styles.input} />
+        <input type="file" name="profileImage" accept="image/*" onChange={handleFileChange} style={styles.input} />
 
         <label>Cover Picture</label>
-        <input type="file" name="coverPicture" accept="image/*" onChange={handleFileChange} style={styles.input} />
+        <input type="file" name="coverImage" accept="image/*" onChange={handleFileChange} style={styles.input} />
 
-        <label>CV</label>
+        <label>CV (pdf/doc)</label>
         <input type="file" name="cv" accept=".pdf,.doc,.docx" onChange={handleFileChange} style={styles.input} />
 
         <h3>Links</h3>
         <div style={styles.linksContainer}>
           <input name="platform" placeholder="Platform" value={linkInput.platform} onChange={handleLinkChange} style={styles.input} />
-          <input name="url" placeholder="URL" value={linkInput.url} onChange={handleLinkChange} style={styles.input} />
-          <button type="button" onClick={addLink} style={styles.button}>Add Link</button>
+          <input name="url" placeholder="https://..." value={linkInput.url} onChange={handleLinkChange} style={styles.input} />
+          <button type="button" onClick={addLink} style={styles.smallButton}>Add</button>
         </div>
 
         <div style={styles.linksList}>
@@ -120,7 +132,7 @@ const handleSubmit = async (e) => {
           ))}
         </div>
 
-        <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
+        <div style={{ display: "flex", gap: "10px", marginTop: 12 }}>
           <button type="submit" style={styles.button}>Create Portfolio</button>
           <button type="button" onClick={() => navigate("/home")} style={styles.backBtn}>Back</button>
         </div>
@@ -130,17 +142,18 @@ const handleSubmit = async (e) => {
 }
 
 const styles = {
-  container: { maxWidth: "700px", margin: "20px auto", padding: "20px", backgroundColor: "#1e1e1e", borderRadius: "10px", color: "#fff" },
-  title: { textAlign: "center", marginBottom: "20px" },
-  form: { display: "flex", flexDirection: "column", gap: "10px" },
-  input: { padding: "10px", borderRadius: "5px", border: "none", fontSize: "16px", background: "#fff" },
-  textarea: { padding: "10px", borderRadius: "5px", border: "none", fontSize: "16px", resize: "vertical", background: "#fff" },
-  button: { padding: "10px", borderRadius: "5px", border: "none", backgroundColor: "#4caf50", color: "#fff", cursor: "pointer", fontWeight: "bold", fontSize: "16px" },
-  backBtn: { padding: "10px", borderRadius: "5px", border: "none", backgroundColor: "#888", color: "#fff", cursor: "pointer", fontWeight: "bold", fontSize: "16px" },
-  linksContainer: { display: "flex", gap: "10px", flexWrap: "wrap" },
-  linksList: { marginTop: "10px" },
-  linkItem: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "5px" },
-  removeBtn: { marginLeft: "10px", backgroundColor: "#f44336", color: "#fff", border: "none", borderRadius: "3px", cursor: "pointer" },
+  container: { maxWidth: 760, margin: "24px auto", padding: 20, backgroundColor: "#1e1e1e", borderRadius: 10, color: "#fff" },
+  title: { textAlign: "center", marginBottom: 12 },
+  form: { display: "flex", flexDirection: "column", gap: 10 },
+  input: { padding: 10, borderRadius: 6, border: "none", fontSize: 15, background: "#fff" },
+  textarea: { padding: 10, borderRadius: 6, border: "none", fontSize: 15, minHeight: 100, background: "#fff" },
+  button: { padding: "10px 14px", borderRadius: 6, border: "none", backgroundColor: "#4caf50", color: "#fff", cursor: "pointer", fontWeight: "600" },
+  smallButton: { padding: "8px 10px", borderRadius: 6, border: "none", backgroundColor: "#2196f3", color: "#fff", cursor: "pointer" },
+  backBtn: { padding: "10px 14px", borderRadius: 6, border: "none", backgroundColor: "#888", color: "#fff", cursor: "pointer" },
+  linksContainer: { display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" },
+  linksList: { marginTop: 8 },
+  linkItem: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: 6, background: "#fff", padding: 8, borderRadius: 6, color: "#000" },
+  removeBtn: { marginLeft: 8, backgroundColor: "#f44336", color: "#fff", border: "none", borderRadius: 4, padding: "6px 8px", cursor: "pointer" },
 };
 
 export default PortfolioCreation;

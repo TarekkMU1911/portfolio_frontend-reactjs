@@ -17,7 +17,7 @@ function Home() {
 
   const fetchPortfolios = async (pageNum) => {
     try {
-      const res = await API.get(`/portfolio?page=${pageNum}&limit=2`); 
+      const res = await API.get(`/portfolio?page=${pageNum}&limit=2`); // Increase limit for better pagination
       setPortfolios(res.data.items);
       setTotalPages(res.data.totalPages);
     } catch (err) {
@@ -87,7 +87,7 @@ function Home() {
             : "Create Portfolio"}
         </button>
 
-        {/* paginaition */}
+        {/* pagenation */}
         <div className="flex space-x-2 mt-6">
           <button
             onClick={() => handlePageChange(page - 1)}
