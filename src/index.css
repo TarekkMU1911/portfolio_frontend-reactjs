@@ -27,3 +27,18 @@ button {
 button:hover {
   background-color: #45a049;
 }
+
+.field:focus {
+  border-color: #2f7b3a;
+  box-shadow: 0 0 0 3px rgba(47, 123, 58, 0.15);
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(47, 123, 58, 0.25);
+}
+
+.btn:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 12px rgba(47, 123, 58, 0.18);
+}

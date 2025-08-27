@@ -33,8 +33,12 @@ const handleSubmit = async (e) => {
   return (
     <div style={styles.container}>
       <div style={styles.card}>
-        <h1 style={styles.title}>Register</h1>
+        <div style={styles.header}>
+          <h1 style={styles.title}>Create Account</h1>
+          <p style={styles.subtitle}>Register to get started</p>
+        </div>
         <form onSubmit={handleSubmit} style={styles.form}>
+           <label style={styles.label} htmlFor="username">Username</label>
           <input
             name="username"
             placeholder="Username"
@@ -43,6 +47,7 @@ const handleSubmit = async (e) => {
             style={styles.input}
             required
           />
+           <label style={styles.label} htmlFor="username">Poassword</label>
           <input
             name="password"
             type="password"
@@ -52,6 +57,7 @@ const handleSubmit = async (e) => {
             style={styles.input}
             required
           />
+           <label style={styles.label} htmlFor="username">Confirm Password</label>
           <input
             name="confirmPassword"
             type="password"
@@ -65,7 +71,7 @@ const handleSubmit = async (e) => {
             Register
           </button>
         </form>
-        <p style={styles.text}>
+        <p style={styles.footerText}>
           Already have an account?{" "}
           <Link to="/login" style={styles.link}>
             Login
@@ -78,54 +84,81 @@ const handleSubmit = async (e) => {
 
 const styles = {
   container: {
+    minHeight: "100vh",
     display: "flex",
-    justifyContent: "center",
     alignItems: "center",
-    height: "100vh",
-    backgroundColor: "#121212",
+    justifyContent: "center",
+    padding: "24px",
+    background:
+      "linear-gradient(135deg, #f7f9fc 0%, #80b895ff 50%, #e9eef5 100%)",
   },
   card: {
-    backgroundColor: "#1e1e1e",
-    padding: "40px",
-    borderRadius: "10px",
-    boxShadow: "0 0 15px rgba(0,0,0,0.5)",
-    width: "350px",
+    width: "100%",
+    maxWidth: "420px",
+    backgroundColor: "#fff",
+    borderRadius: "14px",
+    padding: "32px",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
+    border: "1px solid #eef0f3",
+  },
+  header: {
+    marginBottom: "18px",
     textAlign: "center",
   },
   title: {
-    marginBottom: "20px",
-    color: "#fff",
+    margin: 0,
+    color: "#222",
+    fontSize: "26px",
+    fontWeight: 700,
+  },
+  subtitle: {
+    margin: "6px 0 0",
+    color: "#6b7280",
+    fontSize: "14px",
   },
   form: {
     display: "flex",
     flexDirection: "column",
+    gap: "14px",
+    marginTop: "10px",
+  },
+  label: {
+    fontSize: "13px",
+    color: "#4b5563",
   },
   input: {
-    marginBottom: "15px",
-    padding: "12px",
-    borderRadius: "5px",
-    border: "none",
-    fontSize: "16px",
+    width: "93%",
+    padding: "12px 14px",
+    borderRadius: "10px",
+    border: "1px solid #d9dee5",
+    backgroundColor: "#fff",
+    color: "#111827",
+    fontSize: "15px",
+    outline: "none",
+    transition: "box-shadow 160ms ease, border-color 160ms ease",
   },
   button: {
-    padding: "12px",
-    borderRadius: "5px",
-    border: "none",
-    backgroundColor: "#4caf50",
+    marginTop: "4px",
+    padding: "12px 14px",
+    borderRadius: "10px",
+    border: "1px solid #2f7b3a",
+    backgroundColor: "#2f7b3a",
     color: "#fff",
-    cursor: "pointer",
-    fontWeight: "bold",
+    fontWeight: 700,
     fontSize: "16px",
+    cursor: "pointer",
+    transition: "transform 120ms ease, box-shadow 160ms ease, filter 160ms ease",
   },
-  text: {
-    marginTop: "15px",
-    color: "#ccc",
+  footerText: {
+    marginTop: "16px",
+    textAlign: "center",
+    color: "#6b7280",
+    fontSize: "14px",
   },
   link: {
-    color: "#4caf50",
+    color: "#2f7b3a",
+    fontWeight: 700,
     textDecoration: "none",
-    fontWeight: "bold",
   },
 };
-
 export default Register;

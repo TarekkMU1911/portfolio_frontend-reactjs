@@ -4,6 +4,7 @@ import Register from "./pages/register";
 import Login from "./pages/login";
 import Dashboard from "./pages/portfolioCreation";
 import Portfolio from "./pages/portfolioView";
+import PortfolioEdition from "./pages/portfolioEdition";
 import Home from "./pages/home";
 import { useAuth, AuthProvider } from "./context/authContext";
 import { PortfolioProvider } from "./context/createPContext";
@@ -17,6 +18,14 @@ function DashboardWrapper() {
   return (
     <PortfolioProvider>
       <Dashboard />
+    </PortfolioProvider>
+  );
+}
+
+function PortfolioEditionWrapper() {
+  return (
+    <PortfolioProvider>
+      <PortfolioEdition />
     </PortfolioProvider>
   );
 }
@@ -51,6 +60,15 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <Portfolio />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/portfolioEdition/:id"
+        element={
+          <ProtectedRoute>
+            <PortfolioEditionWrapper />
           </ProtectedRoute>
         }
       />

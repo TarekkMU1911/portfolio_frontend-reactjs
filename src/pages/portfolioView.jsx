@@ -13,13 +13,10 @@ function Portfolio() {
   useEffect(() => {
     const fetchOne = async () => {
       try {
-        console.log("[PortfolioView] GET:", `${API_BASE}/portfolio/${id}`);
         const res = await axios.get(`${API_BASE}/portfolio/${id}`);
-        console.log("[PortfolioView] OK:", res.status, res.data?.id || res.data?._id);
         setData(res.data);
       } catch (e) {
         const msg = e.response?.data || e.message;
-        console.error("[PortfolioView] ERROR:", msg);
         setErr(typeof msg === "string" ? msg : JSON.stringify(msg));
       }
     };
@@ -29,76 +26,186 @@ function Portfolio() {
   if (err) return <div style={{ color: "tomato", padding: 16 }}>Error: {err}</div>;
   if (!data) return <div>Loading...</div>;
 
-  const coverSrc = data.coverImage || data.cover || "";
-  const profileSrc = data.profileImage || data.main || "";
+  const coverSrc = data.coverPictureUrl || "";
+  const profileSrc = data.mainPictureUrl || "";
 
   return (
-    <div className="container" style={{ maxWidth: 900, margin: "24px auto", color: "#fff" }}>
-      <button
-        onClick={() => navigate(-1)}
-        className="px-4 py-2 bg-gray-500 text-white rounded-xl mb-4 hover:scale-105 transition-transform"
-      >
-        Back
-      </button>
+    <div style={styles.container}>
+      <div style={styles.card}>
+        {/* Back Button */}
+        <button
+          onClick={() => navigate(-1)}
+          style={styles.backBtn}
+        >
+          Back
+        </button>
 
-      {coverSrc && (
-        <img
-          src={coverSrc}
-          alt="Cover"
-          style={{ width: "100%", borderRadius: 12, marginBottom: 16 }}
-        />
-      )}
+        {/* Cover & Profile */}
+        {coverSrc && <img src={coverSrc} alt="Cover" style={styles.coverImage} />}
+        {profileSrc && <img src={profileSrc} alt="Profile" style={styles.profileImage} />}
 
-      {profileSrc && (
-        <img
-          src={profileSrc}
-          alt="Profile"
-          style={{ width: 140, height: 140, borderRadius: "50%", objectFit: "cover", marginBottom: 12 }}
-        />
-      )}
+        {/* Name & Job */}
+        <h1 style={styles.name}>{data.name}</h1>
+        <h2 style={styles.jobTitle}>{data.jobTitle}</h2>
 
-      <h1 style={{ margin: 0 }}>{data.name}</h1>
-      <h2 style={{ marginTop: 6, color: "#bdbdbd", fontSize: 18 }}>{data.jobTitle}</h2>
+        {/* Description */}
+        {data.description && <p style={styles.description}>{data.description}</p>}
 
-      {data.description && <p style={{ marginTop: 10 }}>{data.description}</p>}
+        {/* Contact */}
+        <p style={styles.contact}>
+          {data.email && <>Email: {data.email} &nbsp;&nbsp;</>}
+          {data.phoneNumber && <>Phone: {data.phoneNumber}</>}
+        </p>
 
-      <p style={{ marginTop: 10 }}>
-        {data.email && <>Email: {data.email} &nbsp;&nbsp;</>}
-        {data.phone && <>Phone: {data.phone}</>}
-      </p>
-
-      {Array.isArray(data.links) && data.links.length > 0 && (
-        <div style={{ marginTop: 12 }}>
-          <h3 style={{ margin: "12px 0" }}>Links</h3>
-          <ul>
-            {data.links.map((l, i) => {
-              const href = typeof l === "string" ? l : l?.url;
-              const label = typeof l === "string" ? l : (l?.platform ? `${l.platform}: ${l.url}` : l?.url);
-              return (
-                href && (
+        {/* Links */}
+        {Array.isArray(data.links) && data.links.length > 0 && (
+          <div style={styles.linksContainer}>
+            <h3 style={styles.linksTitle}>Links</h3>
+            <ul>
+              {data.links.map((l, i) => {
+                const href = typeof l === "string" ? l : l?.url;
+                const label = typeof l === "string" ? l : (l?.platform ? `${l.platform}: ${l.url}` : l?.url);
+                return href && (
                   <li key={i}>
-                    <a href={href} target="_blank" rel="noreferrer">{label}</a>
+                    <a href={href} target="_blank" rel="noreferrer" style={styles.link}>{label}</a>
                   </li>
-                )
-              );
-            })}
-          </ul>
-        </div>
-      )}
+                );
+              })}
+            </ul>
+          </div>
+        )}
 
-      {data.cv && (
-        <div style={{ marginTop: 12 }}>
-          <a href={data.cv} target="_blank" rel="noreferrer">
+        {/* CV Download */}
+        {data.cvUrl && (
+          <a href={data.cvUrl} download style={styles.downloadBtn}>
             Download CV
           </a>
-        </div>
-      )}
+        )}
 
-      {typeof data.views !== "undefined" && (
-        <p style={{ marginTop: 12 }}>Views: {data.views}</p>
-      )}
+        {/* Update Portfolio Button */}
+        <button
+          onClick={() => navigate(`/portfolioEdition/${id}`)}
+          style={styles.updateBtn}
+        >
+          Update Portfolio
+        </button>
+
+        {/* Views */}
+        {typeof data.views !== "undefined" && (
+          <p style={styles.views}>Views: {data.views}</p>
+        )}
+      </div>
     </div>
   );
 }
+
+const styles = {
+  container: {
+    minHeight: "100vh",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "24px",
+    background: "linear-gradient(135deg, #f7f9fc 0%, #80b895ff 50%, #e9eef5 100%)",
+  },
+  card: {
+    width: "100%",
+    maxWidth: "900px",
+    backgroundColor: "#fff",
+    borderRadius: "14px",
+    padding: "32px",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
+    border: "1px solid #eef0f3",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: "16px",
+  },
+  backBtn: {
+    alignSelf: "flex-start",
+    width: 120,
+    height: 40,
+    borderRadius: "12px",
+    border: "none",
+    backgroundColor: "#2f7b3a",
+    color: "#fff",
+    fontWeight: 600,
+    cursor: "pointer",
+    marginBottom: "16px",
+  },
+  coverImage: {
+    width: "100%",
+    borderRadius: "12px",
+    maxHeight: 300,
+    objectFit: "cover",
+    marginBottom: "16px",
+  },
+  profileImage: {
+    width: 140,
+    height: 140,
+    borderRadius: "50%",
+    objectFit: "cover",
+    marginBottom: "12px",
+    border: "3px solid #2563eb",
+  },
+  name: {
+    margin: 0,
+    fontSize: "26px",
+    fontWeight: 700,
+    color: "#222",
+  },
+  jobTitle: {
+    marginTop: 6,
+    fontSize: "18px",
+    color: "#6b7280",
+  },
+  description: {
+    marginTop: 12,
+    textAlign: "center",
+    color: "#374151",
+  },
+  contact: {
+    marginTop: 8,
+    color: "#374151",
+  },
+  linksContainer: {
+    marginTop: 12,
+    width: "100%",
+  },
+  linksTitle: {
+    margin: "12px 0",
+    color: "#111827",
+  },
+  link: {
+    color: "#2563eb",
+    textDecoration: "none",
+  },
+  downloadBtn: {
+    marginTop: 16,
+    padding: "12px 24px",
+    borderRadius: "12px",
+    border: "1px solid #2f7b3a",
+    backgroundColor: "#2f7b3a",
+    color: "#fff",
+    fontWeight: 700,
+    cursor: "pointer",
+    textDecoration: "none",
+  },
+  updateBtn: {
+    marginTop: 12,
+    padding: "12px 24px",
+    borderRadius: "12px",
+    border: "1px solid #2563eb",
+    backgroundColor: "#2563eb",
+    color: "#fff",
+    fontWeight: 700,
+    cursor: "pointer",
+  },
+  views: {
+    marginTop: 12,
+    color: "#6b7280",
+    fontSize: "14px",
+  },
+};
 
 export default Portfolio;
