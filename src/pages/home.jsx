@@ -56,6 +56,15 @@ function Home() {
     }
   };
 
+  const handleShowMyPortfolio = () => {
+    if (myPortfolio?.id || myPortfolio?._id) {
+      const pid = myPortfolio.id || myPortfolio._id;
+      navigate(`/portfolio/${pid}`);
+    } else {
+      alert("You do not have a portfolio yet!");
+    }
+  };
+
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= totalPages) setPage(newPage);
   };
@@ -63,7 +72,6 @@ function Home() {
   return (
     <div style={styles.container}>
       <div style={styles.card}>
-        {/* Header */}
         <div style={styles.header}>
           <h1 style={styles.title}>Portfolios</h1>
           <button onClick={handleLogout} style={styles.logoutBtn}>
@@ -71,7 +79,6 @@ function Home() {
           </button>
         </div>
 
-        {/* Portfolio Grid */}
         {portfolios.length === 0 ? (
           <p style={styles.emptyText}>No portfolios found.</p>
         ) : (
@@ -94,12 +101,17 @@ function Home() {
           </div>
         )}
 
-        {/* Create/Show Button */}
-        <button onClick={handleCreateOrShow} style={styles.button}>
-          {myPortfolio ? "Show My Portfolio" : "Create Portfolio"}
-        </button>
 
-        {/* Pagination */}
+        <div style={{ display: "flex", justifyContent: "center", gap: "12px", marginTop: 20 }}>
+          <button onClick={handleCreateOrShow} style={styles.button}>
+            {myPortfolio ? "Edit My Portfolio" : "Create Portfolio"}
+          </button>
+
+          <button onClick={handleShowMyPortfolio} style={styles.button}>
+            Show My Portfolio
+          </button>
+        </div>
+
         <div style={styles.pagination}>
           <button
             onClick={() => handlePageChange(page - 1)}
@@ -219,7 +231,7 @@ const styles = {
     transition:
       "transform 120ms ease, box-shadow 160ms ease, filter 160ms ease",
   },
- pagination: {
+  pagination: {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -230,7 +242,7 @@ const styles = {
     padding: "10px 22px",
     borderRadius: "8px",
     border: "1px solid #2563eb",
-    background: "#2563eb", // أزرق ثابت
+    background: "#2563eb",
     color: "#fff",
     cursor: "pointer",
     fontSize: "14px",
@@ -238,7 +250,7 @@ const styles = {
     transition: "all 0.2s ease",
   },
   disabledBtn: {
-    background: "#cbd5e1", // رمادي فاتح
+    background: "#cbd5e1",
     border: "1px solid #cbd5e1",
     color: "#fff",
     cursor: "not-allowed",
@@ -248,12 +260,12 @@ const styles = {
     minWidth: "100px",
     textAlign: "center",
     padding: "10px 18px",
-    background: "#f3f4f6", // رمادي فاتح خلفية
+    background: "#f3f4f6",
     border: "1px solid #d1d5db",
     borderRadius: "8px",
     fontSize: "14px",
     fontWeight: "600",
-    color: "#111827", // أغمق عشان الرقم يبقى واضح
+    color: "#111827",
     boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
   },
 };

@@ -22,14 +22,6 @@ function DashboardWrapper() {
   );
 }
 
-function PortfolioEditionWrapper() {
-  return (
-    <PortfolioProvider>
-      <PortfolioEdition />
-    </PortfolioProvider>
-  );
-}
-
 function AppRoutes() {
   return (
     <Routes>
@@ -68,7 +60,7 @@ function AppRoutes() {
         path="/portfolioEdition/:id"
         element={
           <ProtectedRoute>
-            <PortfolioEditionWrapper />
+            <PortfolioEdition />
           </ProtectedRoute>
         }
       />

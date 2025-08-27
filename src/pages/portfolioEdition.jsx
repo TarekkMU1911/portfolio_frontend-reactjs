@@ -3,15 +3,16 @@ import { useAuth } from "../context/authContext";
 import { useNavigate, useParams } from "react-router-dom";
 import API from "../services/api";
 
+
 function PortfolioEdition() {
   const { user } = useAuth();
-  const { id } = useParams(); // portfolio id
+  const { id } = useParams(); 
   const [portfolio, setPortfolio] = useState(null);
   const [linkInput, setLinkInput] = useState({ platform: "", url: "" });
   const [files, setFiles] = useState({ profileImage: null, coverImage: null, cv: null });
   const navigate = useNavigate();
 
-  // fetch existing portfolio
+
   useEffect(() => {
     const fetchPortfolio = async () => {
       try {
@@ -26,7 +27,6 @@ function PortfolioEdition() {
 
   if (!user || !portfolio) return <div className="pc-loading">Loading...</div>;
 
-  // form change handlers
   const handleChange = (e) => {
     const { name, value } = e.target;
     setPortfolio((prev) => ({ ...prev, [name]: value }));
@@ -80,7 +80,7 @@ function PortfolioEdition() {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      // ✅ go to View Portfolio after update
+
       navigate(`/portfolio/${id}`);
     } catch (err) {
       const serverMsg = err.response?.data?.message || JSON.stringify(err.response?.data) || err.message;
@@ -99,7 +99,7 @@ function PortfolioEdition() {
           <h1 className="pc-title">Edit Portfolio</h1>
 
           <form onSubmit={handleSubmit} className="pc-grid">
-            {/* ===== Left: Basic Info ===== */}
+
             <div className="pc-section">
               <h3>Basic Info</h3>
 
@@ -142,7 +142,6 @@ function PortfolioEdition() {
               </div>
             </div>
 
-            {/* ===== Right: Media & Links ===== */}
             <div className="pc-section">
               <h3>Media & Links</h3>
 
@@ -189,7 +188,6 @@ function PortfolioEdition() {
               </div>
             </div>
 
-            {/* ===== Description ===== */}
             <div className="pc-section pc-span-2">
               <h3>Description</h3>
               <textarea
@@ -201,7 +199,7 @@ function PortfolioEdition() {
               />
             </div>
 
-            {/* ===== Actions ===== */}
+       
             <div className="pc-actions pc-span-2">
               <button type="submit" className="pc-btn pc-btn-primary">Update Portfolio</button>
               <button type="button" onClick={() => navigate(`/portfolio/${id}`)} className="pc-btn pc-btn-secondary">Back</button>

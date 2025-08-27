@@ -32,32 +32,31 @@ function Portfolio() {
   return (
     <div style={styles.container}>
       <div style={styles.card}>
-        {/* Back Button */}
-        <button
-          onClick={() => navigate(-1)}
-          style={styles.backBtn}
-        >
-          Back
-        </button>
 
-        {/* Cover & Profile */}
+  <button
+    onClick={() => navigate("/home")}
+     style={styles.backBtn}
+  >
+      Back
+    </button>
+
+
+
         {coverSrc && <img src={coverSrc} alt="Cover" style={styles.coverImage} />}
         {profileSrc && <img src={profileSrc} alt="Profile" style={styles.profileImage} />}
 
-        {/* Name & Job */}
+
         <h1 style={styles.name}>{data.name}</h1>
         <h2 style={styles.jobTitle}>{data.jobTitle}</h2>
 
-        {/* Description */}
+
         {data.description && <p style={styles.description}>{data.description}</p>}
 
-        {/* Contact */}
         <p style={styles.contact}>
           {data.email && <>Email: {data.email} &nbsp;&nbsp;</>}
           {data.phoneNumber && <>Phone: {data.phoneNumber}</>}
         </p>
 
-        {/* Links */}
         {Array.isArray(data.links) && data.links.length > 0 && (
           <div style={styles.linksContainer}>
             <h3 style={styles.linksTitle}>Links</h3>
@@ -75,14 +74,14 @@ function Portfolio() {
           </div>
         )}
 
-        {/* CV Download */}
+
         {data.cvUrl && (
           <a href={data.cvUrl} download style={styles.downloadBtn}>
             Download CV
           </a>
         )}
 
-        {/* Update Portfolio Button */}
+
         <button
           onClick={() => navigate(`/portfolioEdition/${id}`)}
           style={styles.updateBtn}
@@ -90,7 +89,7 @@ function Portfolio() {
           Update Portfolio
         </button>
 
-        {/* Views */}
+
         {typeof data.views !== "undefined" && (
           <p style={styles.views}>Views: {data.views}</p>
         )}
